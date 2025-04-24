@@ -1,97 +1,114 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Home.css'; // Reuse the same gradient style
 import ChatInput from '../components/ChatInput';
 import { LightBulbIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { addNodeToMindmap } from './MindmapPage';
 
 const CoolerPage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [currentPrompt, setCurrentPrompt] = useState('');
+  const [savedPrompts, setSavedPrompts] = useState<string[]>([]);
   
-  const handlePromptSubmit = (promptText: string) => {
-    setLoading(true);
-
-    // First save the prompt to mindmap
-    const saveToMindmap = async () => {
+  // Load any pending prompts from localStorage for debugging
+  useEffect(() => {
+    const stored = localStorage.getItem('mindmap-pending-nodes');
+    if (stored) {
       try {
-        console.log('Fetching existing nodes...');
-        // Fetch existing nodes to get the root node
-        const response = await fetch('http://localhost:3001/api/nodes');
-        if (!response.ok) {
-          throw new Error(`Failed to fetch nodes: ${response.status} ${response.statusText}`);
-        }
-        const data = await response.json();
-        console.log('Fetched nodes:', data);
-        const nodes = data.nodes || [];
-        
-        // Create new node data
-        const newNode = {
-          id: Math.random().toString(),
-          type: 'custom',
-          position: { 
-            x: nodes.length > 0 ? nodes[0].position.x : 0,
-            y: nodes.length > 0 ? nodes[0].position.y + 100 : 100
-          },
-          data: {
-            prompt: promptText,
-            tags: ['input'],
-            imageUrl: '',
-            source: 'user',
-            timestamp: Date.now(),
-          },
-        };
-
-        // If we have a root node, create an edge
-        const newEdge = nodes.length > 0 ? {
-          id: `e${nodes[0].id}-${newNode.id}`,
-          source: nodes[0].id,
-          target: newNode.id,
-        } : null;
-
-        const payload = {
-          node: newNode,
-          edge: newEdge,
-        };
-        console.log('Saving new node and edge:', payload);
-
-        // Save the new node and edge
-        const saveResponse = await fetch('http://localhost:3001/api/nodes', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
-
-        if (!saveResponse.ok) {
-          throw new Error(`Failed to save node: ${saveResponse.status} ${saveResponse.statusText}`);
-        }
-
-        const savedData = await saveResponse.json();
-        console.log('Successfully saved:', savedData);
+        const pending = JSON.parse(stored);
+        const promptTexts = pending.map((node: { prompt: string }) => node.prompt);
+        setSavedPrompts(promptTexts);
+        console.log('Pending nodes found:', pending);
       } catch (error) {
-        console.error('Error in saveToMindmap:', error);
-        // Continue with navigation even if saving fails
+        console.error('Error parsing pending nodes:', error);
       }
-    };
+    }
+  }, []);
+  
+  // Add a function to navigate to generator with mindmap data
+  const navigateToGenerator = (promptText: string) => {
+    // Simply navigate to the generator page
+    // The mindmap button will be displayed after loading is complete
+    navigate('/generator', { 
+      state: { 
+        productType: 'cooler', 
+        prompt: promptText 
+      } 
+    });
+  };
 
-    // Execute the save operation and then navigate
-    saveToMindmap()
-      .then(() => {
-        console.log('Save operation completed, navigating...');
-      })
-      .catch((error) => {
-        console.error('Final error in save operation:', error);
-      })
-      .finally(() => {
-        navigate('/generator', { 
-          state: { 
-            productType: 'cooler', 
-            prompt: promptText 
-          } 
+  // Modify handlePromptSubmit to use the new navigation function
+  const handlePromptSubmit = async (promptText: string) => {
+    setCurrentPrompt(promptText);
+    setLoading(true);
+    
+    try {
+      console.log('Submitting prompt:', promptText);
+      
+      // Always add to local savedPrompts list for user feedback
+      setSavedPrompts(prev => [...prev, promptText]);
+      
+      // Try to add the node to mindmap and store the result
+      const nodeAdded = addNodeToMindmap(promptText);
+      console.log('Node added result:', nodeAdded);
+      
+      // Double-check localStorage to ensure it was saved
+      const stored = localStorage.getItem('mindmap-pending-nodes');
+      const pendingNodes = stored ? JSON.parse(stored) : [];
+      
+      // Add the node to pending if it wasn't added directly and isn't already there
+      if (!nodeAdded && !pendingNodes.some((node: any) => node.prompt === promptText)) {
+        console.log("Node wasn't added directly, ensuring it's in localStorage");
+        pendingNodes.push({
+          prompt: promptText,
+          timestamp: Date.now()
         });
-        setLoading(false);
-      });
+        localStorage.setItem('mindmap-pending-nodes', JSON.stringify(pendingNodes));
+      }
+      
+      // Show feedback to user
+      if (nodeAdded) {
+        // If the node was added directly to the mindmap, show a notification
+        const userWantsToSeeMap = window.confirm('已添加到心智圖！您要查看心智圖嗎？');
+        if (userWantsToSeeMap) {
+          navigate('/mindmap', { 
+            state: { 
+              productType: 'cooler',
+              initialPrompt: promptText
+            }
+          });
+          return; // Don't continue to generator
+        }
+      } else {
+        // If the node was stored for later, also show a notification
+        alert('您的輸入已保存，將在心智圖頁面中顯示。');
+      }
+      
+      // Continue with normal navigation to generator
+      navigateToGenerator(promptText);
+    } catch (error) {
+      console.error('Error adding node to mindmap:', error);
+      
+      // Even if there's an error, try to save to localStorage as a fallback
+      try {
+        const stored = localStorage.getItem('mindmap-pending-nodes');
+        const pendingNodes = stored ? JSON.parse(stored) : [];
+        pendingNodes.push({
+          prompt: promptText,
+          timestamp: Date.now()
+        });
+        localStorage.setItem('mindmap-pending-nodes', JSON.stringify(pendingNodes));
+        console.log('Saved to localStorage as fallback');
+      } catch (storageError) {
+        console.error('Failed to save to localStorage:', storageError);
+      }
+      
+      // Still proceed with navigation even if there's an error
+      navigateToGenerator(promptText);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleBackToSelection = () => {
@@ -99,11 +116,28 @@ const CoolerPage: React.FC = () => {
   };
 
   const handleOpenMindmap = () => {
-    navigate('/mindmap', { state: { productType: 'cooler' } });
+    // Pass the current prompt when opening mindmap, if available
+    navigate('/mindmap', { 
+      state: { 
+        productType: 'cooler',
+        initialPrompt: currentPrompt || undefined
+      } 
+    });
   };
 
   const handleOpenTimeline = () => {
     navigate('/timeline', { state: { productType: 'cooler' } });
+  };
+
+  // Add a function to directly add the current input to mindmap without navigating
+  const handleAddToMindmap = () => {
+    if (!currentPrompt) return;
+    
+    const nodeAdded = addNodeToMindmap(currentPrompt);
+    console.log('Added to mindmap directly:', nodeAdded);
+    
+    // Show feedback to user
+    alert('已添加到心智圖！');
   };
 
   return (
@@ -152,12 +186,37 @@ const CoolerPage: React.FC = () => {
             <li>尺寸要求和安裝限制</li>
           </ul>
         </div>
+        
+        {/* Debug information - hidden in production */}
+        {savedPrompts.length > 0 && (
+          <div className="mb-4 p-4 bg-gray-800 rounded">
+            <h3 className="text-white font-semibold mb-2">待處理的心智圖節點：</h3>
+            <ul className="list-disc pl-6 text-gray-300">
+              {savedPrompts.map((prompt, index) => (
+                <li key={index}>{prompt}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        
+        {/* Add button to directly add to mindmap */}
+        {currentPrompt && (
+          <div className="mb-4 flex justify-center">
+            <button
+              onClick={handleAddToMindmap}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              添加當前輸入到心智圖
+            </button>
+          </div>
+        )}
       </div>
       
       <ChatInput 
         onSubmit={handlePromptSubmit} 
         placeholder="描述您理想中的散熱器設計..." 
         loading={loading}
+        onTextChange={setCurrentPrompt}
       />
     </div>
   );

@@ -12,12 +12,10 @@ import ReactFlow, {
   Panel,
   Handle,
   Position,
-  NodeProps,
-  NodeChange,
-  EdgeChange
+  NodeProps
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { PlusIcon, ClockIcon, ArrowsPointingOutIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, ClockIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { NodeEditor } from './NodeEditor';
 import { Timeline } from './Timeline';
 
@@ -111,18 +109,180 @@ const initialNodes: MindmapNode[] = [
   },
 ];
 
-const initialEdges: Edge[] = [];
-
 interface MindmapProps {
   initialPrompt?: string;
+  onReady?: (api: MindmapApi) => void;
 }
 
-export const Mindmap: React.FC<MindmapProps> = ({ initialPrompt }) => {
+// Define the API interface
+export interface MindmapApi {
+  addExternalNode: (prompt: string) => void;
+}
+
+export const Mindmap: React.FC<MindmapProps> = ({ initialPrompt, onReady }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [showTimeline, setShowTimeline] = useState(false);
   const initialPromptAddedRef = useRef(false);
+
+  // Load nodes from localStorage with error recovery
+  useEffect(() => {
+    try {
+      const savedNodes = localStorage.getItem('mindmap-nodes');
+      const savedEdges = localStorage.getItem('mindmap-edges');
+      
+      if (savedNodes && savedEdges) {
+        try {
+          const parsedNodes = JSON.parse(savedNodes);
+          const parsedEdges = JSON.parse(savedEdges);
+          
+          // Validate that we have valid arrays
+          if (Array.isArray(parsedNodes) && Array.isArray(parsedEdges) && parsedNodes.length > 0) {
+            console.log('Loading nodes and edges from localStorage:', parsedNodes.length, parsedEdges.length);
+            setNodes(parsedNodes);
+            setEdges(parsedEdges);
+          } else {
+            throw new Error('Invalid data structure');
+          }
+        } catch (error) {
+          console.error('Error parsing data from localStorage:', error);
+          console.log('Falling back to initial node');
+          setNodes([initialNodes[0]]);
+        }
+      } else {
+        console.log('No saved data found, using initial node');
+        setNodes([initialNodes[0]]);
+      }
+    } catch (error) {
+      console.error('Error loading from localStorage:', error);
+      setNodes([initialNodes[0]]);
+    }
+  }, [setNodes, setEdges]);
+
+  // Save nodes to localStorage with error handling
+  useEffect(() => {
+    if (nodes.length > 0) {
+      try {
+        localStorage.setItem('mindmap-nodes', JSON.stringify(nodes));
+        localStorage.setItem('mindmap-edges', JSON.stringify(edges));
+        console.log('Saved nodes and edges to localStorage:', nodes.length, edges.length);
+      } catch (error) {
+        console.error('Error saving to localStorage:', error);
+      }
+    }
+  }, [nodes, edges]);
+
+  // Create API object with enhanced error handling
+  const addExternalNode = useCallback((prompt: string) => {
+    try {
+      console.log('Adding external node:', prompt);
+      
+      // Check if a node with this prompt already exists to prevent duplicates
+      const existingNode = nodes.find(node => node.data.prompt === prompt);
+      if (existingNode) {
+        console.log('Node with this prompt already exists, not creating duplicate:', prompt);
+        return;
+      }
+      
+      // Find the root node or use the first node as root
+      const rootNode = nodes.find(node => node.id === 'root') || nodes[0];
+      if (!rootNode) {
+        console.error('No root node found, creating one');
+        const newRoot = initialNodes[0];
+        setNodes([newRoot]);
+        
+        // Create the new node relative to the new root
+        const newNode: MindmapNode = {
+          id: Date.now().toString(), // Use timestamp for more unique IDs
+          type: 'custom',
+          position: { 
+            x: newRoot.position.x + 200, // Offset to the right
+            y: newRoot.position.y
+          },
+          data: {
+            prompt,
+            tags: ['external'],
+            imageUrl: '',
+            source: 'user',
+            timestamp: Date.now(),
+          },
+        };
+        
+        const newEdge: Edge = {
+          id: `e${newRoot.id}-${newNode.id}`,
+          source: newRoot.id,
+          target: newNode.id,
+        };
+
+        setNodes((nds) => [...nds, newNode]);
+        setEdges((eds) => [...eds, newEdge]);
+        
+        // Save immediately to localStorage
+        try {
+          localStorage.setItem('mindmap-nodes', JSON.stringify([newRoot, newNode]));
+          localStorage.setItem('mindmap-edges', JSON.stringify([newEdge]));
+        } catch (saveError) {
+          console.error('Error saving to localStorage:', saveError);
+        }
+        return;
+      }
+
+      // Find the last child node of the root to position the new node
+      const lastChild = nodes
+        .filter(node => edges.some(edge => edge.source === rootNode.id && edge.target === node.id))
+        .sort((a, b) => a.position.y - b.position.y)
+        .pop();
+
+      const newNode: MindmapNode = {
+        id: Date.now().toString(), // Use timestamp for more unique IDs
+        type: 'custom',
+        position: { 
+          x: rootNode.position.x + 200, // Offset to the right
+          y: lastChild ? lastChild.position.y + 100 : rootNode.position.y // Position below last child or at root level
+        },
+        data: {
+          prompt,
+          tags: ['external'],
+          imageUrl: '',
+          source: 'user',
+          timestamp: Date.now(),
+        },
+      };
+      
+      const newEdge: Edge = {
+        id: `e${rootNode.id}-${newNode.id}`,
+        source: rootNode.id,
+        target: newNode.id,
+      };
+
+      setNodes((nds) => [...nds, newNode]);
+      setEdges((eds) => [...eds, newEdge]);
+
+      // Save immediately to localStorage
+      try {
+        const updatedNodes = [...nodes, newNode];
+        const updatedEdges = [...edges, newEdge];
+        localStorage.setItem('mindmap-nodes', JSON.stringify(updatedNodes));
+        localStorage.setItem('mindmap-edges', JSON.stringify(updatedEdges));
+      } catch (saveError) {
+        console.error('Error saving to localStorage:', saveError);
+      }
+      
+      console.log('Node added successfully:', newNode); // Debug log
+    } catch (error) {
+      console.error('Error adding external node:', error);
+    }
+  }, [nodes, edges, setNodes, setEdges]);
+
+  // Expose API through onReady callback
+  useEffect(() => {
+    if (onReady) {
+      onReady({
+        addExternalNode,
+      });
+    }
+  }, [onReady, addExternalNode]);
 
   // 從後端獲取節點數據
   const fetchNodes = useCallback(async () => {
@@ -240,6 +400,23 @@ export const Mindmap: React.FC<MindmapProps> = ({ initialPrompt }) => {
     );
     setSelectedNode(null);
   };
+
+  useEffect(() => {
+    // Suppress ResizeObserver errors
+    const originalConsoleError = console.error;
+    console.error = (...args) => {
+      if (args[0] && typeof args[0] === 'string' && args[0].includes('ResizeObserver')) {
+        // Ignore ResizeObserver errors
+        return;
+      }
+      originalConsoleError(...args);
+    };
+
+    return () => {
+      // Restore original console.error
+      console.error = originalConsoleError;
+    };
+  }, []);
 
   return (
     <div className="w-full h-full relative">

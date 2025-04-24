@@ -5,12 +5,14 @@ interface ChatInputProps {
   onSubmit: (prompt: string) => void;
   placeholder?: string;
   loading?: boolean;
+  onTextChange?: (text: string) => void;
 }
 
 const ChatInput: React.FC<ChatInputProps> = ({ 
   onSubmit, 
   placeholder = "描述您想要的設計...", 
-  loading = false 
+  loading = false,
+  onTextChange
 }) => {
   const [prompt, setPrompt] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -35,6 +37,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
       textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
     }
   }, [prompt]);
+
+  // Call onTextChange when prompt changes
+  useEffect(() => {
+    if (onTextChange) {
+      onTextChange(prompt);
+    }
+  }, [prompt, onTextChange]);
 
   return (
     <div className="chat-input-container">
