@@ -1,4 +1,4 @@
-# Cooler Master AI Design Platform
+# Kaiyue Happysing AWS Platform
 
 A collaborative design platform that combines Cooler Master's design DNA with AWS generative AI capabilities to enhance product design workflows.
 

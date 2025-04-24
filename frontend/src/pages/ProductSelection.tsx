@@ -1,11 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import './Home.css'; // Add gradient background
 
 interface ProductCard {
   id: string;
   name: string;
   description: string;
   color: string;
+  path: string;
 }
 
 const ProductSelection: React.FC = () => {
@@ -16,43 +18,48 @@ const ProductSelection: React.FC = () => {
       id: 'case',
       name: '主機外殼',
       description: '設計創新的電腦主機外殼',
-      color: 'from-amber-500 to-amber-700',
+      color: 'bg-gray-800 border-[1px] border-amber-600/30',
+      path: '/case'
     },
     {
       id: 'cooler',
       name: '散熱器',
       description: '打造高效能與美觀的散熱解決方案',
-      color: 'from-sky-400 to-blue-600',
+      color: 'bg-gray-800 border-[1px] border-blue-600/30',
+      path: '/cooler'
     },
     {
       id: 'psu',
       name: '電源供應器',
       description: '設計可靠與高效的電源模組',
-      color: 'from-indigo-500 to-purple-700',
+      color: 'bg-gray-800 border-[1px] border-purple-600/30',
+      path: '/psu'
     },
     {
       id: 'furniture',
       name: '遊戲家具',
       description: '創造舒適與人體工學的遊戲空間',
-      color: 'from-rose-400 to-rose-600',
+      color: 'bg-gray-800 border-[1px] border-rose-600/30',
+      path: '/furniture'
     },
   ];
 
-  const handleSelectProduct = (productId: string) => {
-    navigate('/home', { state: { selectedProduct: productId } });
+  const handleSelectProduct = (path: string) => {
+    navigate(path);
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="container mx-auto px-4 py-12">
+    <div className="home-container">
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-16">
           <div className="text-xl font-bold flex items-center">
-            <span className="text-purple-500 mr-1">CM</span>
-            <span>Design AI</span>
+            <img src="/cm-logo.png" alt="Cooler Master" className="h-8 mr-2" />
+            <span className="cm-purple mr-1">Design</span>
+            <span>AI</span>
           </div>
           <div>
-            <button className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-md">
+            <button className="cm-btn-secondary">
               登入
             </button>
           </div>
@@ -71,14 +78,14 @@ const ProductSelection: React.FC = () => {
           {productCards.map((product) => (
             <div 
               key={product.id} 
-              className={`bg-gradient-to-br ${product.color} rounded-lg p-8 flex flex-col justify-between min-h-[320px] transform transition-transform hover:scale-105 cursor-pointer`}
-              onClick={() => handleSelectProduct(product.id)}
+              className={`${product.color} rounded-lg p-8 flex flex-col justify-between min-h-[320px] transform transition-transform hover:scale-105 cursor-pointer shadow-lg`}
+              onClick={() => handleSelectProduct(product.path)}
             >
               <div>
                 <h2 className="text-4xl font-bold mb-4">{product.name}</h2>
-                <p className="text-lg">{product.description}</p>
+                <p className="text-lg text-gray-300">{product.description}</p>
               </div>
-              <button className="mt-8 bg-black/20 hover:bg-black/40 py-2 px-6 rounded-full w-fit text-white font-bold flex items-center">
+              <button className="mt-8 cm-btn-secondary inline-flex items-center justify-center">
                 開始設計
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />

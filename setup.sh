@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Setting up Cooler Master AI Design Platform..."
+echo "Setting up Kaiyue Happysing AWS Platform..."
 
 # Create necessary directories
 mkdir -p frontend/public/mock-images

@@ -1,0 +1,103 @@
+.chat-input-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(30, 30, 38, 0.8);
+  backdrop-filter: blur(8px);
+  padding: 0.75rem 1rem;
+  z-index: 10;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+.chat-input-wrapper {
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+.chat-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.textarea-container {
+  position: relative;
+  display: flex;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: #232329;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+}
+
+.textarea-container:focus-within {
+  border-color: #9146FF;
+}
+
+.chat-textarea {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 12px 45px 12px 14px;
+  color: white;
+  font-size: 1rem;
+  line-height: 1.5;
+  max-height: 200px;
+  width: 100%;
+  resize: none;
+  outline: none;
+  font-family: inherit;
+}
+
+.chat-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.submit-button {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background-color: #9146FF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border: none;
+  outline: none;
+}
+
+.submit-button:hover {
+  background-color: #7c3cd9;
+}
+
+.submit-button.disabled {
+  background-color: rgba(145, 70, 255, 0.5);
+  cursor: not-allowed;
+}
+
+.send-icon {
+  width: 18px;
+  height: 18px;
+  color: white;
+}
+
+.disclaimer {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  margin-top: 8px;
+}
+
+@media (max-width: 640px) {
+  .chat-input-container {
+    padding: 0.5rem;
+  }
+} 
