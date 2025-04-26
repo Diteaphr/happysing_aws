@@ -9,16 +9,13 @@ import PsuPage from './pages/PsuPage';
 import FurniturePage from './pages/FurniturePage';
 import MindmapPage from './pages/MindmapPage';
 import TimelinePage from './pages/TimelinePage';
-import Navbar from './components/Navbar';
 
 const App: React.FC = () => {
   return (
     <Router>
       <div className="min-h-screen bg-[#121212]">
-        <Navbar />
         <Routes>
-          <Route path="/" element={<ProductSelection />} />
-          <Route path="/home" element={<Home />} />
+          <Route path="/" element={<Home />} />
           <Route path="/case" element={<CasePage />} />
           <Route path="/cooler" element={<CoolerPage />} />
           <Route path="/psu" element={<PsuPage />} />

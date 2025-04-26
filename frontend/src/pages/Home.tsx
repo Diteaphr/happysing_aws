@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import './Home.css'; // Import CSS file for the gradient styling
+import './Home.css'; // Import CSS file for the styling
 
 interface LocationState {
   selectedProduct?: string;
@@ -12,13 +12,12 @@ const Home: React.FC = () => {
   const state = location.state as LocationState;
   
   const [selectedProduct, setSelectedProduct] = useState<string>(state?.selectedProduct || '');
-  const [prompt, setPrompt] = useState<string>('');
 
   const productTypes = [
-    { id: 'case', name: '主機外殼' },
-    { id: 'cooler', name: '散熱器' },
-    { id: 'psu', name: '電源供應器' },
-    { id: 'furniture', name: '遊戲家具' },
+    { id: 'case', name: '主機外殼', description: '設計創新的電腦主機外殼' },
+    { id: 'cooler', name: '散熱器', description: '打造高效能與美觀的散熱解決方案' },
+    { id: 'psu', name: '電源供應器', description: '設計可靠與高效的電源模組' },
+    { id: 'furniture', name: '遊戲家具', description: '創造舒適與人體工學的遊戲空間' },
   ];
 
   useEffect(() => {
@@ -27,77 +26,35 @@ const Home: React.FC = () => {
     }
   }, [state]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (selectedProduct && prompt) {
-      navigate('/generator', { state: { productType: selectedProduct, prompt } });
-    }
-  };
-
-  const handleBackToSelection = () => {
-    navigate('/');
+  const handleProductSelect = (productId: string) => {
+    navigate(`/${productId}`, { state: { selectedProduct: productId } });
   };
 
   return (
     <div className="home-container">
-      <div className="content-container max-w-2xl mx-auto p-6">
-        <div className="flex items-center mb-6">
-          <button 
-            onClick={handleBackToSelection}
-            className="flex items-center text-white hover:text-gray-200"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-            </svg>
-            返回選擇
-          </button>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="tagline-container py-14 mb-8">
+          <p className="tagline-first">不要只接受平凡的設計。</p>
+          <h1 className="tagline-second">創造 <span className="font-normal italic">非凡</span> 。</h1>
         </div>
 
-        <h1 className="text-3xl font-bold text-center mb-8 text-white">AI 輔助設計平台</h1>
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="productType" className="block text-sm font-medium text-white mb-2">
-              產品類型
-            </label>
-            <select
-              id="productType"
-              value={selectedProduct}
-              onChange={(e) => setSelectedProduct(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-gray-800 text-white"
-              required
-            >
-              <option value="">請選擇產品類型</option>
-              {productTypes.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="prompt" className="block text-sm font-medium text-white mb-2">
-              設計描述
-            </label>
-            <textarea
-              id="prompt"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-gray-800 text-white"
-              rows={4}
-              placeholder="請描述您想要的設計風格、特點..."
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          >
-            開始生成設計
-          </button>
-        </form>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {productTypes.map((product) => (
+            <div key={product.id} className="product-card">
+              <h2 className="product-title">{product.name}</h2>
+              <p className="product-description">{product.description}</p>
+              <button 
+                className="action-button"
+                onClick={() => handleProductSelect(product.id)}
+              >
+                開始設計 
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

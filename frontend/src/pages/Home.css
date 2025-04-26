@@ -1,24 +1,67 @@
 .home-container {
   min-height: 100vh;
-  background: linear-gradient(to bottom, #16151a 0%, #1a1a24 100%);
+  background: #000000;
   background-repeat: no-repeat;
   background-attachment: fixed;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  padding: 2rem;
 }
 
 .content-container {
-  background-color: rgba(30, 30, 38, 0.7);
   border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(4px);
+  padding: 2rem;
+}
+
+.product-card {
+  background-color: #3D4E81; /* ImageFX blue color */
+  border-radius: 8px;
+  padding: 2.5rem;
+  color: white;
+  height: 350px; /* Fixed height to match the image */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Left align content */
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Add different colors for each card */
+.product-card:nth-child(1) {
+  background-color: #B59B35; /* Yellow for Whisk */
+}
+
+.product-card:nth-child(2) {
+  background-color: #3D5E81; /* Blue for VideoFX */
+}
+
+.product-card:nth-child(3) {
+  background-color: #5E64C4; /* Light blue for ImageFX */
+}
+
+.product-card:nth-child(4) {
+  background-color: #8E5986; /* Purple for MusicFX */
+}
+
+.product-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  text-align: left;
+  margin-top: auto;
+}
+
+.product-description {
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  text-align: left;
+  opacity: 0.8;
 }
 
 .cm-header {
-  background-color: #121212;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: transparent;
+  border-bottom: none;
   padding: 0.75rem 1.5rem;
   display: flex;
   justify-content: space-between;
@@ -48,4 +91,41 @@
   background-color: #1e1e24;
   border-radius: 8px;
   overflow: hidden;
+}
+
+.tagline-container {
+  text-align: left;
+  margin-bottom: 3rem;
+}
+
+.tagline-first {
+  font-size: 1.5rem;
+  color: #9a9a9a;
+  margin-bottom: 0.5rem;
+}
+
+.tagline-second {
+  font-size: 3rem;
+  color: white;
+  font-weight: normal;
+}
+
+.action-button {
+  background-color: #232329;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  font-size: 1rem;
+  transition: background-color 0.3s;
+  margin-top: auto;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+}
+
+.action-button:hover {
+  background-color: #333339;
 } 
