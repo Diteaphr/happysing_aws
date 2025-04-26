@@ -10,6 +10,7 @@ import MindmapPage from './pages/MindmapPage';
 import TimelinePage from './pages/TimelinePage';
 import CaseGeneratedPage from './pages/CaseGeneratedPage';
 import Home from './pages/Home';
+import SelectImagePage from './pages/SelectImagePage';
 
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
           <Route path="/mindmap" element={<MindmapPage />} />
           <Route path="/timeline" element={<TimelinePage />} />
           <Route path="/case-generated" element={<CaseGeneratedPage />} />
+          <Route path="/select-image" element={<SelectImagePage />} />
         </Routes>
       </div>
     </Router>
