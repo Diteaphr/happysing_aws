@@ -6,6 +6,15 @@ import './Home.css';
 import { Timeline } from '../components/Timeline';
 import ChatInput from '../components/ChatInput';
 
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 const CasePage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -44,49 +53,75 @@ const CasePage: React.FC = () => {
     }
   }, []);
 
-  async function callPromptBooster(promptText: string): Promise<string> {
+  async function callPromptBooster(promptText: string, referenceImage?: File | null): Promise<string> {
+    let referenceImageBase64: string | null = null;
+  
+    if (referenceImage) {
+      referenceImageBase64 = await fileToBase64(referenceImage);
+    }
+  
+    const body: any = {
+      user_prompt: promptText,
+      inspiration_image_ids: [],
+      use_trends: true,
+    };
+  
+    if (referenceImageBase64) {
+      body.inspiration_images_base64 = [referenceImageBase64];
+    }
+  
+    console.log('[DEBUG] Sending to API:', body); // 💬 Debugging log
+  
     const response = await fetch('https://409etc6v1f.execute-api.us-west-2.amazonaws.com/promptbooster', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        user_prompt: promptText,
-        inspiration_image_ids: [],
-        use_trends: true
-      })
+      body: JSON.stringify(body),
     });
+  
     const data = await response.json();
+    console.log('[DEBUG] API Response:', data); // 💬 Debugging log
     return data.boosted_prompt;
   }
+  
 
   const handlePromptSubmit = async (promptText: string, original: string) => {
     setLoading(true);
     try {
-      const boostedPrompt = await callPromptBooster(promptText);
+      // Send both the prompt and the reference image (if available) to the API
+      const boostedPrompt = await callPromptBooster(promptText, referenceImage);
+  
       const newHistoryItem = {
         prompt: promptText,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
+  
       const stored = localStorage.getItem('case-history');
       const history = stored ? JSON.parse(stored) : [];
       history.push(newHistoryItem);
       localStorage.setItem('case-history', JSON.stringify(history));
-      setTimelineNodes(prevNodes => [...prevNodes, {
-        id: `node-${prevNodes.length}`,
-        data: {
-          prompt: promptText,
-          timestamp: newHistoryItem.timestamp,
-          tags: ['主機外殼'],
-          imageUrl: null
-        }
-      }]);
+  
+      setTimelineNodes((prevNodes) => [
+        ...prevNodes,
+        {
+          id: `node-${prevNodes.length}`,
+          data: {
+            prompt: promptText,
+            timestamp: newHistoryItem.timestamp,
+            tags: ['主機外殼'],
+            imageUrl: null,
+          },
+        },
+      ]);
+  
+      // Now pass reference image along with the boosted prompt
       navigate('/generator', {
         state: {
           productType: 'case',
           prompt: original,
           boostedPrompt: boostedPrompt,
           baseImage: baseImage ? URL.createObjectURL(baseImage) : null,
-          referenceImage: referenceImage ? URL.createObjectURL(referenceImage) : null
-        }
+          referenceImage: referenceImage ? URL.createObjectURL(referenceImage) : null, // Send the reference image to generator
+        },
       });
     } catch (error) {
       console.error('Error boosting prompt:', error);
@@ -94,6 +129,7 @@ const CasePage: React.FC = () => {
       setLoading(false);
     }
   };
+  
 
   const openImageSelector = () => {
     navigate('/select-image');
