@@ -23,6 +23,7 @@ interface SelectionArea {
 interface LocationState {
   productType: string;
   prompt: string;
+  boostedPrompt?: string;
 }
 
 const Generator: React.FC = () => {
@@ -54,7 +55,6 @@ const Generator: React.FC = () => {
   ];
 
   useEffect(() => {
-    // Try to restore from localStorage if state is missing
     if (!state?.prompt) {
       const storedState = localStorage.getItem('generator-last-state');
       if (storedState) {
@@ -62,11 +62,6 @@ const Generator: React.FC = () => {
           const parsedState = JSON.parse(storedState);
           if (parsedState && parsedState.prompt) {
             console.log('Restored state from localStorage:', parsedState);
-            // Use the location.state setter provided by react-router
-            const loc = {
-              ...location,
-              state: parsedState
-            };
             navigate(location.pathname, { 
               state: parsedState,
               replace: true 
@@ -77,35 +72,24 @@ const Generator: React.FC = () => {
           console.error('Error restoring state from localStorage:', error);
         }
       }
-      
-      // If no valid state was found in localStorage, redirect to home
       console.log('No valid state found, redirecting to home');
       navigate('/');
       return;
     }
-
-    // Save current state to localStorage for recovery
+  
     try {
       localStorage.setItem('generator-last-state', JSON.stringify(state));
     } catch (error) {
       console.error('Error saving state to localStorage:', error);
     }
-
-    const simulatePromptRefinement = async () => {
-      setLoading(true);
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock refined prompt
-      setRefinedPrompt(`${state.prompt} - 現代風格 - 鋁合金材質 - RGB燈效`);
-      setLoading(false);
-      
-      // Show mindmap button after content is loaded
-      setShowMindmapButton(true);
-    };
-
-    simulatePromptRefinement();
+  
+    // ✅ No fallback to prompt
+    setRefinedPrompt(state.boostedPrompt || '');
+    setLoading(false);
+    setShowMindmapButton(true);
   }, [state, navigate, location.pathname]);
+  
+  
 
   // 选择图片后加载到Canvas
   useEffect(() => {

@@ -48,29 +48,30 @@ const CasePage: React.FC = () => {
     });
   
     const data = await response.json();
-    const boostedPrompt = JSON.parse(data.body).boosted_prompt;
+    console.log('[DEBUG] API Response:', data);  // <-- add this to see what API really returns
+    
+    const boostedPrompt = data.boosted_prompt;   // <-- NO MORE JSON.parse(data.body)
   
-    return boostedPrompt; // <-- return it here!
+    return boostedPrompt;
   }
   
-
-  const handlePromptSubmit = (promptText: string) => {
+  
+  const handlePromptSubmit = async (promptText: string, original: string) => {
     setLoading(true);
-    setCurrentPrompt(promptText);
-    
-    // Save to history
-    const newHistoryItem = {
-      prompt: promptText,
-      timestamp: Date.now()
-    };
-    
+  
     try {
+      const boostedPrompt = await callPromptBooster(promptText);
+  
+      const newHistoryItem = {
+        prompt: promptText,   // 👈 still user prompt
+        timestamp: Date.now()
+      };
+  
       const stored = localStorage.getItem('case-history');
       const history = stored ? JSON.parse(stored) : [];
       history.push(newHistoryItem);
       localStorage.setItem('case-history', JSON.stringify(history));
-      
-      // Update timeline nodes
+  
       setTimelineNodes(prevNodes => [
         ...prevNodes,
         {
@@ -83,23 +84,24 @@ const CasePage: React.FC = () => {
           }
         }
       ]);
-    } catch (error) {
-      console.error('Error saving to history:', error);
-    }
-    
-    // Navigate to generator with images if any
-    setTimeout(() => {
+  
+      // ⬇️ navigate with both
       navigate('/generator', { 
         state: { 
           productType: 'case', 
-          prompt: promptText,
+          prompt: original,         // user input
+          boostedPrompt: boostedPrompt, // AI boosted
           baseImage: baseImage ? URL.createObjectURL(baseImage) : null,
           referenceImage: referenceImage ? URL.createObjectURL(referenceImage) : null
         } 
       });
+    } catch (error) {
+      console.error('Error boosting prompt:', error);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
+  
 
   const handleBackToSelection = () => {
     navigate('/');
@@ -122,7 +124,7 @@ const CasePage: React.FC = () => {
     ];
     const randomPrompt = luckyPrompts[Math.floor(Math.random() * luckyPrompts.length)];
     setCurrentPrompt(randomPrompt);
-    handlePromptSubmit(randomPrompt);
+    handlePromptSubmit(randomPrompt, randomPrompt);
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, type: 'base' | 'reference') => {
@@ -197,7 +199,7 @@ const CasePage: React.FC = () => {
         //handlePromptSubmit(currentPrompt.trim());
         e.preventDefault();
         const boostedPrompt = await callPromptBooster(currentPrompt.trim());
-        handlePromptSubmit(boostedPrompt); // <-- now pass boosted prompt here!
+        handlePromptSubmit(boostedPrompt, currentPrompt.trim()); // <-- now pass boosted prompt here!
       }
     }}
     placeholder="描述您理想中的散熱器設計..."
@@ -211,7 +213,7 @@ const CasePage: React.FC = () => {
   />
 
   <button
-    onClick={() => currentPrompt.trim() && handlePromptSubmit(currentPrompt.trim())}
+    onClick={() => currentPrompt.trim() && handlePromptSubmit(currentPrompt.trim(), currentPrompt.trim())}
     disabled={loading || !currentPrompt.trim()}
     className={`
       p-2 rounded-md transition
@@ -307,7 +309,7 @@ const CasePage: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => handlePromptSubmit(node.data.prompt)}
+              onClick={() => handlePromptSubmit(node.data.prompt, node.data.prompt)}
               className="ml-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded transition-colors"
             >
               重新使用
