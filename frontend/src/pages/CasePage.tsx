@@ -207,9 +207,29 @@ const CasePage: React.FC = () => {
               >
                 {loadingImages ? '載入中...' : '從資料庫載入圖片'}
               </button>
-              <span className="text-sm text-gray-500">
-                {baseImage ? baseImage.name : '未選擇任何圖片'}
-              </span>
+              <div className="flex flex-col items-center gap-2">
+              {baseImage ? (
+                <span className="text-sm text-gray-500">{baseImage.name}</span>
+              ) : (
+                (() => {
+                  const selectedImageUrl = localStorage.getItem('selectedBaseImageUrl');
+                  if (selectedImageUrl) {
+                    return (
+                      <img 
+                        src={selectedImageUrl} 
+                        alt="選擇的 Base Image" 
+                        className="w-32 h-32 object-contain rounded-lg"
+                      />
+                    );
+                  } else {
+                    return (
+                      <span className="text-sm text-gray-500">未選擇任何圖片</span>
+                    );
+                  }
+                })()
+              )}
+            </div>
+
             </div>
 
             {imageError && (
