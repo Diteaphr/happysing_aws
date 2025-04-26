@@ -36,7 +36,7 @@ async function callPromptBooster(promptText: string): Promise<string> {
       body: JSON.stringify({
         user_prompt: promptText,
         inspiration_image_ids: [],
-        use_trends: true
+        use_trends: false
       })
     });
 
@@ -62,7 +62,32 @@ async function callPromptBooster(promptText: string): Promise<string> {
   }
 }
 
-async function callImageGenerator(promptText: string, userId: string, roundId: number): Promise<string[]> {
+// async function callImageGenerator(promptText: string, userId: string, roundId: number): Promise<string[]> {
+//   try {
+//     const response = await fetch('https://409etc6v1f.execute-api.us-west-2.amazonaws.com/imagegenerator', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({
+//         prompt: promptText,
+//         user_id: userId,
+//         generation_round: roundId
+//       })
+//     });
+
+//     const data = await response.json();
+//     return data.generated_images;  // <-- array of image URLs
+//   } catch (error) {
+//     console.error('Image generation failed:', error);
+//     return [];  // fallback
+//   }
+// }
+
+async function callImageGenerator(
+  promptText: string, 
+  userId: string, 
+  roundId: number, 
+  baseImageUrl?: string | null
+): Promise<string[]> {
   try {
     const response = await fetch('https://409etc6v1f.execute-api.us-west-2.amazonaws.com/imagegenerator', {
       method: 'POST',
@@ -70,7 +95,8 @@ async function callImageGenerator(promptText: string, userId: string, roundId: n
       body: JSON.stringify({
         prompt: promptText,
         user_id: userId,
-        generation_round: roundId
+        generation_round: roundId,
+        base_image: baseImageUrl || null    // <--- ADD THIS
       })
     });
 
@@ -617,14 +643,19 @@ const Generator: React.FC = () => {
     setIsGenerating(true);  // 🌀 Start showing loading spinner
   
     try {
-      const generatedImages = await callImageGenerator(refinedPrompt, 'test-user', 1);
+      const generatedImages = await callImageGenerator(
+        refinedPrompt,             // ✍️ boosted prompt
+        'test-user',                // 👤 userId
+        1,                          // 🔢 generation round
+        baseImage || null           // 🖼️ selected base image URL
+      );
   
       navigate('/case-generated', { 
         state: { 
           productType: state.productType,
           prompt: state.prompt,
           boostedPrompt: refinedPrompt,
-          baseImage: baseImage,
+          baseImage: baseImage,     // <--- keep passing it
           referenceImage: referenceImage,
           generatedImages: generatedImages
         } 
@@ -636,7 +667,7 @@ const Generator: React.FC = () => {
       setIsGenerating(false);  // 🛑 Stop loading spinner when done
     }
   };
-  
+    
   
 
   // 在 AI 優化後提示詞部分之後添加手動重新優化的功能

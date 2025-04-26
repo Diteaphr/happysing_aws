@@ -12,6 +12,40 @@ interface LocationState {
   generatedImages: string[];
 }
 
+async function callPromptBooster(promptText: string): Promise<string> {
+  try {
+    const response = await fetch('https://409etc6v1f.execute-api.us-west-2.amazonaws.com/promptbooster', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_prompt: promptText,
+        inspiration_image_ids: [],
+        use_trends: true
+      })
+    });
+
+    const data = await response.json();
+    console.log('[DEBUG] API Response:', data);  // 便於調試 API 響應
+    
+    const boostedPrompt = data.boosted_prompt;   // 直接獲取 boosted_prompt，不需要 JSON.parse(data.body)
+    
+    return boostedPrompt;
+  } catch (error) {
+    console.log('Prompt booster API failed, using fallback enhancement:', error);
+    
+    // 失敗時的備用方案
+    const enhancedPrompt = `${promptText}\n\n額外考慮要點：
+- 散熱效能最佳化
+- 材質選擇與工藝品質
+- 噪音控制
+- 安裝便利性
+- 美觀設計
+- 兼容性與未來擴充`;
+
+    return enhancedPrompt;
+  }
+}
+
 const CaseGeneratedPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -70,20 +104,37 @@ const CaseGeneratedPage: React.FC = () => {
   };
   
   const handlePromptSubmit = async (promptText: string, original: string) => {
-    // Implement your prompt submission logic here
     setLoading(true);
     try {
       console.log("Submitting prompt:", promptText);
-      // You can reuse logic from CasePage.tsx for API calls
-      // Example: 
-      // const boostedPrompt = await callPromptBooster(promptText);
-      // ... rest of your submission logic
+  
+      // Step 1: Boost the prompt
+      const boostedPrompt = await callPromptBooster(promptText);
+  
+      // Step 2: Get selected base image
+      let baseImageUrl = null;
+      if (selectedImageIndex >= 0 && generatedImages[selectedImageIndex]) {
+        baseImageUrl = generatedImages[selectedImageIndex];
+      }
+  
+      // Step 3: 🚀 NAVIGATE to /generator page with info
+      navigate('/generator', {
+        state: {
+          productType: 'case',                      // or whatever product type
+          prompt: promptText,                        // original user input
+          boostedPrompt: boostedPrompt,              // boosted version
+          baseImage: baseImageUrl,                   // selected base image
+          referenceImage: referenceImage ? URL.createObjectURL(referenceImage) : null
+        }
+      });
+  
     } catch (error) {
-      console.error('Error processing prompt:', error);
+      console.error('Error boosting prompt:', error);
     } finally {
       setLoading(false);
     }
   };
+  
 
   if (!state?.prompt) {
     return null;
