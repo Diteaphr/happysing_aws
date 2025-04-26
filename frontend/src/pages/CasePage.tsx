@@ -120,7 +120,7 @@ const CasePage: React.FC = () => {
           prompt: original,
           boostedPrompt: boostedPrompt,
           baseImage: baseImage ? URL.createObjectURL(baseImage) : null,
-          referenceImage: referenceImage ? URL.createObjectURL(referenceImage) : null, // Send the reference image to generator
+          referencemage: referenceImage ? URL.createObjectURL(referenceImage) : null, // Send the reference image to generator
         },
       });
     } catch (error) {
