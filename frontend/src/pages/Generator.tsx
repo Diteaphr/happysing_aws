@@ -62,10 +62,32 @@ async function callPromptBooster(promptText: string): Promise<string> {
   }
 }
 
+async function callImageGenerator(promptText: string, userId: string, roundId: number): Promise<string[]> {
+  try {
+    const response = await fetch('https://409etc6v1f.execute-api.us-west-2.amazonaws.com/imagegenerator', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: promptText,
+        user_id: userId,
+        generation_round: roundId
+      })
+    });
+
+    const data = await response.json();
+    return data.generated_images;  // <-- array of image URLs
+  } catch (error) {
+    console.error('Image generation failed:', error);
+    return [];  // fallback
+  }
+}
+
+
 const Generator: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const state = location.state as LocationState;
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
 
   const [refinedPrompt, setRefinedPrompt] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
@@ -591,17 +613,31 @@ const Generator: React.FC = () => {
   };
 
   // 處理繼續按鈕點擊
-  const handleContinue = () => {
-    navigate('/case-generated', { 
-      state: { 
-        productType: state.productType,
-        prompt: state.prompt,
-        boostedPrompt: refinedPrompt,
-        baseImage: baseImage,
-        referenceImage: referenceImage
-      } 
-    });
+  const handleContinue = async () => {
+    setIsGenerating(true);  // 🌀 Start showing loading spinner
+  
+    try {
+      const generatedImages = await callImageGenerator(refinedPrompt, 'test-user', 1);
+  
+      navigate('/case-generated', { 
+        state: { 
+          productType: state.productType,
+          prompt: state.prompt,
+          boostedPrompt: refinedPrompt,
+          baseImage: baseImage,
+          referenceImage: referenceImage,
+          generatedImages: generatedImages
+        } 
+      });
+    } catch (error) {
+      console.error('Error during generation:', error);
+      alert('生成失敗，請稍後重試');
+    } finally {
+      setIsGenerating(false);  // 🛑 Stop loading spinner when done
+    }
   };
+  
+  
 
   // 在 AI 優化後提示詞部分之後添加手動重新優化的功能
   const handleReoptimizePrompt = async () => {
@@ -718,12 +754,14 @@ const Generator: React.FC = () => {
           
           {/* 繼續按鈕 */}
           <div className="text-center">
-            <button 
-              onClick={handleContinue}
-              className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-12 rounded-lg text-xl transition-colors"
-            >
-              繼續
-            </button>
+              <button 
+                onClick={handleContinue}
+                disabled={isGenerating}  // 🛑 Disable button while generating
+                className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-12 rounded-lg text-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isGenerating ? '生成中...' : '繼續'}  {/* 🌀 Change button text */}
+              </button>
+
           </div>
         </div>
       </div>
