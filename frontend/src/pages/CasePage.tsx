@@ -4,6 +4,8 @@ import './Home.css'; // Reuse the same gradient style
 import ChatInput from '../components/ChatInput';
 import { LightBulbIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { Timeline } from '../components/Timeline';
+import { PaperAirplaneIcon } from '@heroicons/react/24/solid';
+
 
 const CasePage: React.FC = () => {
   const navigate = useNavigate();
@@ -162,17 +164,45 @@ const CasePage: React.FC = () => {
             試手氣
           </button>
         </div>
-        
-        {/* New Chat Input */}
-        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-          <h2 className="text-lg font-extrabold mb-3 text-black font-inter">New chat in this project</h2>
-          <ChatInput 
-            onSubmit={handlePromptSubmit} 
-            placeholder="描述您理想中的主機外殼設計..." 
-            loading={loading}
-            onTextChange={setCurrentPrompt}
-          />
-        </div>
+{/* ——— New ChatGPT-style Input ——— */}
+<div className="bg-white border border-purple-200 rounded-xl p-4 mb-6 flex items-end space-x-2 shadow-lg">
+  <textarea
+    value={currentPrompt}
+    onChange={e => {
+      setCurrentPrompt(e.target.value);
+      e.target.style.height = 'auto';
+      e.target.style.height = e.target.scrollHeight + 'px';
+    }}
+    onKeyDown={e => {
+      if (e.key === 'Enter' && !e.shiftKey && currentPrompt.trim()) {
+        e.preventDefault();
+        handlePromptSubmit(currentPrompt.trim());
+      }
+    }}
+    placeholder="描述您理想中的散熱器設計..."
+    rows={1}
+    className="
+      flex-1 resize-none overflow-hidden 
+      bg-white text-gray-800 placeholder-purple-400 
+      focus:outline-none
+    "
+    disabled={loading}
+  />
+
+  <button
+    onClick={() => currentPrompt.trim() && handlePromptSubmit(currentPrompt.trim())}
+    disabled={loading || !currentPrompt.trim()}
+    className={`
+      p-2 rounded-md transition
+      ${currentPrompt.trim()
+        ? 'bg-purple-600 hover:bg-purple-700 text-white'
+        : 'bg-purple-100 text-purple-300 cursor-not-allowed'}
+    `}
+  >
+    <PaperAirplaneIcon className="w-5 h-5" />
+  </button>
+</div>
+
         
         {/* Upload Image Sections */}
         <div className="grid grid-cols-2 gap-4 mb-8">
@@ -216,56 +246,60 @@ const CasePage: React.FC = () => {
           </div>
         </div>
         
-        {/* Timeline Section */}
-        <div className="bg-gray-800 rounded-lg shadow-md p-4">
-          <h2 className="text-lg font-semibold mb-4 text-white">Chats in this project</h2>
-          {timelineNodes.length > 0 ? (
-            <div className="space-y-2">
-              {timelineNodes.map((node, index) => (
-                <div key={node.id || index} className="p-3 bg-gray-700 rounded-md hover:bg-gray-600 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <div 
-                      onClick={() => handleNodeSelect(node)}
-                      className="flex items-start space-x-3 cursor-pointer flex-1"
+{/* ——— Timeline Section ——— */}
+<div className="bg-white rounded-lg shadow-lg p-4">
+  <h2 className="text-lg font-semibold mb-4 text-gray-900">Chats in this project</h2>
+  {timelineNodes.length > 0 ? (
+    <div className="space-y-2">
+      {timelineNodes.map((node, index) => (
+        <div
+          key={node.id || index}
+          className="p-3 bg-white rounded-md hover:bg-purple-50 transition-colors shadow-lg"
+        >
+          <div className="flex items-start justify-between">
+            <div
+              onClick={() => handleNodeSelect(node)}
+              className="flex items-start space-x-3 cursor-pointer flex-1"
+            >
+              {node.data.imageUrl && (
+                <img
+                  src={node.data.imageUrl}
+                  alt={node.data.prompt}
+                  className="w-12 h-12 object-cover rounded-md"
+                />
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-gray-800 truncate">{node.data.prompt}</p>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {node.data.tags?.map((tag: string, tagIdx: number) => (
+                    <span
+                      key={tagIdx}
+                      className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-full"
                     >
-                      {node.data.imageUrl && (
-                        <img
-                          src={node.data.imageUrl}
-                          alt={node.data.prompt}
-                          className="w-12 h-12 object-cover rounded-md"
-                        />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-white truncate">{node.data.prompt}</p>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {node.data.tags && node.data.tags.map((tag: string, tagIdx: number) => (
-                            <span
-                              key={tagIdx}
-                              className="px-2 py-1 text-xs bg-gray-600 text-gray-300 rounded-full"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                        <p className="text-xs text-gray-400 mt-1">
-                          {new Date(node.data.timestamp).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handlePromptSubmit(node.data.prompt)}
-                      className="ml-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded transition-colors"
-                    >
-                      重新使用
-                    </button>
-                  </div>
+                      {tag}
+                    </span>
+                  ))}
                 </div>
-              ))}
+                <p className="text-xs text-gray-500 mt-1">
+                  {new Date(node.data.timestamp).toLocaleString()}
+                </p>
+              </div>
             </div>
-          ) : (
-            <p className="text-gray-400">No history found yet.</p>
-          )}
+            <button
+              onClick={() => handlePromptSubmit(node.data.prompt)}
+              className="ml-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded transition-colors"
+            >
+              重新使用
+            </button>
+          </div>
         </div>
+      ))}
+    </div>
+  ) : (
+    <p className="text-gray-500">No history found yet.</p>
+  )}
+</div>
+
       </div>
     </div>
   );
