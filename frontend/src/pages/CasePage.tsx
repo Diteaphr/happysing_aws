@@ -178,7 +178,7 @@ const CasePage: React.FC = () => {
                 handlePromptSubmit(boostedPrompt, currentPrompt.trim());
               }
             }}
-            placeholder="描述您理想中的散熱器設計..."
+            placeholder="描述您理想中的主機外殼設計..."
             rows={1}
             className="flex-1 resize-none overflow-hidden bg-white text-gray-800 placeholder-purple-400 focus:outline-none"
             disabled={loading}
