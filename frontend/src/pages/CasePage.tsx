@@ -36,6 +36,24 @@ const CasePage: React.FC = () => {
     }
   }, []);
   
+  async function callPromptBooster(promptText: string): Promise<string> {
+    const response = await fetch('https://409etc6v1f.execute-api.us-west-2.amazonaws.com/promptbooster', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_prompt: promptText,
+        inspiration_image_ids: [],
+        use_trends: true
+      })
+    });
+  
+    const data = await response.json();
+    const boostedPrompt = JSON.parse(data.body).boosted_prompt;
+  
+    return boostedPrompt; // <-- return it here!
+  }
+  
+
   const handlePromptSubmit = (promptText: string) => {
     setLoading(true);
     setCurrentPrompt(promptText);
@@ -173,10 +191,13 @@ const CasePage: React.FC = () => {
       e.target.style.height = 'auto';
       e.target.style.height = e.target.scrollHeight + 'px';
     }}
-    onKeyDown={e => {
+    onKeyDown={async (e) => {
       if (e.key === 'Enter' && !e.shiftKey && currentPrompt.trim()) {
+        //e.preventDefault();
+        //handlePromptSubmit(currentPrompt.trim());
         e.preventDefault();
-        handlePromptSubmit(currentPrompt.trim());
+        const boostedPrompt = await callPromptBooster(currentPrompt.trim());
+        handlePromptSubmit(boostedPrompt); // <-- now pass boosted prompt here!
       }
     }}
     placeholder="描述您理想中的散熱器設計..."
