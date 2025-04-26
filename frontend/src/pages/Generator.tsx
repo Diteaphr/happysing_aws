@@ -709,13 +709,18 @@ const Generator: React.FC = () => {
           <div className="mb-6">
             <h2 className="text-2xl font-bold mb-4">Base Image</h2>
             <div className="border border-gray-200 rounded-lg p-4 flex items-center justify-center">
-              {baseImage ? (
-                <img src={baseImage} alt="基礎圖片" className="max-h-64 max-w-full" />
-              ) : (
-                <div className="bg-gray-100 h-64 w-full flex items-center justify-center rounded-lg">
-                  <p className="text-gray-500">無基礎圖片</p>
-                </div>
-              )}
+            {(baseImage || localStorage.getItem('selectedBaseImageUrl')) ? (
+              <img
+                src={baseImage || localStorage.getItem('selectedBaseImageUrl') || ''}
+                alt="基礎圖片"
+                className="max-h-64 max-w-full object-contain"
+              />
+            ) : (
+              <div className="bg-gray-100 h-64 w-full flex items-center justify-center rounded-lg">
+                <p className="text-gray-500">無基礎圖片</p>
+              </div>
+            )}
+
             </div>
           </div>
           
