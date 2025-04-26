@@ -20,7 +20,7 @@ async function callPromptBooster(promptText: string): Promise<string> {
       body: JSON.stringify({
         user_prompt: promptText,
         inspiration_image_ids: [],
-        use_trends: true
+        use_trends: false
       })
     });
 
