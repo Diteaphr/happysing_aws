@@ -9,15 +9,16 @@ import Generator from './pages/Generator';
 import MindmapPage from './pages/MindmapPage';
 import TimelinePage from './pages/TimelinePage';
 import CaseGeneratedPage from './pages/CaseGeneratedPage';
-import Navbar from './components/Navbar';
+import Home from './pages/Home';
+
 
 function App() {
   return (
     <Router>
       <div className="App">
-        <Navbar />
         <Routes>
-          <Route path="/" element={<ProductSelection />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/product-selection" element={<ProductSelection />} />
           <Route path="/case" element={<CasePage />} />
           <Route path="/cooler" element={<CoolerPage />} />
           <Route path="/psu" element={<PsuPage />} />
