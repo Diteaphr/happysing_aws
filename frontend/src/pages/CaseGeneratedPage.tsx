@@ -25,6 +25,7 @@ const CaseGeneratedPage: React.FC = () => {
   const [showOriginalPrompt, setShowOriginalPrompt] = useState(true);
   const [showBoostedPrompt, setShowBoostedPrompt] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [refinedPromptLoading, setRefinedPromptLoading] = useState(false);
   
   // 示例圖片 - 在實際應用中，這些可能來自 API 響應
   const generatedImages = state?.generatedImages || [];
@@ -186,9 +187,16 @@ const CaseGeneratedPage: React.FC = () => {
             <div 
               className={`transition-all duration-300 overflow-hidden ${showBoostedPrompt ? 'max-h-96 p-6' : 'max-h-0 opacity-0'}`}
             >
-              <p className="text-gray-700">
-                Trending design features to consider: Here is a summary of the common design trends and features across the PC case images: - Materials and Colors: - Black is the dominant exterior color - Metal (steel/aluminum) is the most common exterior material - Glass side panels are very common - Some cases have mesh panel accents - Small number of cases use plastic - Shapes: - Rectangular cuboid is the most prevalent overall shape - Angular and aggressive styling features are common - Front panel styling varies (flat, protruding, mesh) - Lighting: - RGB LED lighting inside the case and along edges is very popular - Some cases have no lighting - Layout and Features: - Vertical GPU mount layout is common
-              </p>
+              {refinedPromptLoading ? (
+                <div className="flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-700"></div>
+                  <p className="text-gray-700">正在優化中...</p>
+                </div>
+              ) : (
+                <p className="text-gray-700">
+                  {state.boostedPrompt || state.prompt}
+                </p>
+              )}
             </div>
           </div>
         </div>
