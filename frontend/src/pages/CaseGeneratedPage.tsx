@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
 import './Home.css';
 
 interface LocationState {
@@ -8,7 +9,7 @@ interface LocationState {
   boostedPrompt?: string;
   baseImage?: string | null;
   referenceImage?: string | null;
-  generatedImages: string[];  // <-- new
+  generatedImages: string[];
 }
 
 const CaseGeneratedPage: React.FC = () => {
@@ -17,6 +18,13 @@ const CaseGeneratedPage: React.FC = () => {
   const state = location.state as LocationState;
   
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
+  const [favorites, setFavorites] = useState<number[]>([]);
+  const [showFavoriteMessage, setShowFavoriteMessage] = useState<number | null>(null);
+  const [currentPrompt, setCurrentPrompt] = useState('');
+  const [referenceImage, setReferenceImage] = useState<File | null>(null);
+  const [showOriginalPrompt, setShowOriginalPrompt] = useState(true);
+  const [showBoostedPrompt, setShowBoostedPrompt] = useState(true);
+  const [loading, setLoading] = useState(false);
   
   // 示例圖片 - 在實際應用中，這些可能來自 API 響應
   const generatedImages = state?.generatedImages || [];
@@ -37,19 +45,43 @@ const CaseGeneratedPage: React.FC = () => {
     setSelectedImageIndex(index);
   };
   
-  const handleSave = () => {
-    alert('設計已保存！');
-    // 這裡可以添加保存邏輯
+  const handleRefineClick = (index: number) => {
+    // Toggle selection
+    setSelectedImageIndex(index === selectedImageIndex ? -1 : index);
+  };
+
+  const handleHeartClick = (index: number) => {
+    // Add to favorites
+    if (!favorites.includes(index)) {
+      setFavorites([...favorites, index]);
+      setShowFavoriteMessage(index);
+      setTimeout(() => {
+        setShowFavoriteMessage(null);
+      }, 2000);
+    } else {
+      setFavorites(favorites.filter(i => i !== index));
+    }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] || null;
+    setReferenceImage(file);
   };
   
-  const handleDownload = () => {
-    // 創建一個下載鏈接
-    const link = document.createElement('a');
-    link.href = generatedImages[selectedImageIndex];
-    link.download = `case-design-${Date.now()}.jpg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handlePromptSubmit = async (promptText: string, original: string) => {
+    // Implement your prompt submission logic here
+    setLoading(true);
+    try {
+      console.log("Submitting prompt:", promptText);
+      // You can reuse logic from CasePage.tsx for API calls
+      // Example: 
+      // const boostedPrompt = await callPromptBooster(promptText);
+      // ... rest of your submission logic
+    } catch (error) {
+      console.error('Error processing prompt:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!state?.prompt) {
@@ -58,103 +90,168 @@ const CaseGeneratedPage: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      {/* 頂部導航欄已移除 */}
-      
-      {/* 圖片橫向列表 */}
-      <div className="bg-gray-800 p-4">
-        <div className="max-w-7xl mx-auto overflow-x-auto">
-          <div className="flex space-x-4">
-            {generatedImages.map((image, index) => (
-              <div 
-                key={index} 
-                className={`flex-shrink-0 cursor-pointer border-2 ${selectedImageIndex === index ? 'border-yellow-400' : 'border-transparent'}`}
-                onClick={() => handleSelectImage(index)}
-              >
+      {/* Image gallery at the top */}
+      <div className="p-8 bg-purple-100 flex justify-center">
+        <div className="grid grid-cols-3 gap-8 max-w-4xl">
+          {generatedImages.slice(0, 3).map((image, index) => (
+            <div key={index} className="relative">
+              <div className="bg-white p-2 rounded-lg shadow-md">
                 <img 
                   src={image} 
                   alt={`設計 ${index + 1}`} 
-                  className="h-24 w-auto object-cover"
+                  className="w-full h-48 object-cover rounded"
                 />
+                <div className="flex justify-between mt-2">
+                  <button 
+                    onClick={() => handleRefineClick(index)}
+                    className={`w-10 h-10 flex items-center justify-center rounded-full ${selectedImageIndex === index ? 'bg-purple-600' : 'bg-gray-300'}`}
+                  >
+                    {selectedImageIndex === index ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    ) : null}
+                  </button>
+                  <button 
+                    onClick={() => handleHeartClick(index)}
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-300"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${favorites.includes(index) ? 'text-red-500' : 'text-black'}`} viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+                {showFavoriteMessage === index && (
+                  <div className="absolute top-2 right-2 bg-green-500 text-white px-3 py-1 rounded-lg text-sm">
+                    已加入圖庫！
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
       
-      {/* 主要內容 */}
-      <div className="flex flex-grow">
-        {/* 左側：提示詞和設置 */}
-        <div className="w-1/3 bg-white p-6 overflow-y-auto border-r">
-          {/* 返回按鈕 - 替代導航欄 */}
-          <div className="mb-6">
+      <div className="flex-grow flex flex-col p-8 max-w-4xl mx-auto w-full">
+        {/* 返回按鈕 */}
+        <div className="mb-6">
+          <button 
+            onClick={handleBackToGenerator}
+            className="flex items-center text-black hover:text-gray-700"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+            </svg>
+            返回生成頁面
+          </button>
+        </div>
+        
+        {/* 可折疊的提示詞區域 */}
+        <div className="mb-8 grid grid-cols-2 gap-8">
+          <div className="bg-white rounded-lg shadow-md">
             <button 
-              onClick={handleBackToGenerator}
-              className="flex items-center text-black hover:text-gray-700"
+              className="w-full text-left px-6 py-3 text-lg font-semibold text-black flex justify-between items-center border border-gray-200 rounded-lg"
+              onClick={() => setShowOriginalPrompt(!showOriginalPrompt)}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+              <span>原始提示詞</span>
+              <svg 
+                className={`fill-current h-4 w-4 transition-transform ${showOriginalPrompt ? '' : '-rotate-90'}`}
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 20 20"
+              >
+                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
               </svg>
-              返回生成頁面
             </button>
-          </div>
-
-          <h1 className="text-2xl font-bold mb-6">主機外殼設計結果</h1>
-          
-          <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4">原始提示詞</h2>
-            <p className="text-gray-700 bg-gray-50 p-4 rounded-lg">{state.prompt}</p>
-          </div>
-          
-          <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4">AI 優化後提示詞</h2>
-            <p className="text-gray-700 bg-gray-50 p-4 rounded-lg">{state.boostedPrompt || state.prompt}</p>
-          </div>
-          
-          <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4">參考資訊</h2>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold mb-2">散熱效能</h3>
-                <p className="text-sm text-gray-600">優秀的風道設計，可提供高效散熱性能，適合高性能配置。</p>
-              </div>
-              <div>
-                <h3 className="font-semibold mb-2">材質</h3>
-                <p className="text-sm text-gray-600">鋁合金+鋼化玻璃，兼具耐用性與美觀。</p>
-              </div>
-              <div>
-                <h3 className="font-semibold mb-2">兼容性</h3>
-                <p className="text-sm text-gray-600">支援 ATX, M-ATX, ITX 主板，最長顯卡 360mm，CPU散熱器高度 170mm。</p>
-              </div>
+            <div 
+              className={`transition-all duration-300 overflow-hidden ${showOriginalPrompt ? 'max-h-96 p-6' : 'max-h-0 opacity-0'}`}
+            >
+              <p className="text-gray-700">{state.prompt}</p>
             </div>
           </div>
           
-          {/* 添加操作按鈕 - 替代原頂部導航欄按鈕 */}
-          <div className="flex space-x-3 mt-8">
-            <button
-              onClick={handleSave}
-              className="flex-1 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          <div className="bg-white rounded-lg shadow-md">
+            <button 
+              className="w-full text-left px-6 py-3 text-lg font-semibold text-black flex justify-between items-center border border-gray-200 rounded-lg"
+              onClick={() => setShowBoostedPrompt(!showBoostedPrompt)}
             >
-              保存設計
+              <span>AI 優化後提示詞</span>
+              <svg 
+                className={`fill-current h-4 w-4 transition-transform ${showBoostedPrompt ? 'rotate-180' : ''}`}
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 20 20"
+              >
+                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+              </svg>
             </button>
-            <button
-              onClick={handleDownload}
-              className="flex-1 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            <div 
+              className={`transition-all duration-300 overflow-hidden ${showBoostedPrompt ? 'max-h-96 p-6' : 'max-h-0 opacity-0'}`}
             >
-              下載圖片
-            </button>
+              <p className="text-gray-700">
+                Trending design features to consider: Here is a summary of the common design trends and features across the PC case images: - Materials and Colors: - Black is the dominant exterior color - Metal (steel/aluminum) is the most common exterior material - Glass side panels are very common - Some cases have mesh panel accents - Small number of cases use plastic - Shapes: - Rectangular cuboid is the most prevalent overall shape - Angular and aggressive styling features are common - Front panel styling varies (flat, protruding, mesh) - Lighting: - RGB LED lighting inside the case and along edges is very popular - Some cases have no lighting - Layout and Features: - Vertical GPU mount layout is common
+              </p>
+            </div>
           </div>
         </div>
         
-        {/* 右側：選中的圖片大圖 */}
-        <div className="w-2/3 bg-gray-100 p-8 flex items-center justify-center">
-          <div className="bg-white rounded-lg shadow-lg p-4 w-full max-w-3xl">
-            <img 
-              src={generatedImages[selectedImageIndex]} 
-              alt="選中的設計" 
-              className="w-full h-auto object-contain"
+        {/* 輸入 Prompt */}
+        <div className="bg-purple-600 border border-purple-700 rounded-xl p-4 mb-6 flex items-end space-x-2 shadow-lg">
+          <textarea
+            value={currentPrompt}
+            onChange={e => {
+              setCurrentPrompt(e.target.value);
+              e.target.style.height = 'auto';
+              e.target.style.height = e.target.scrollHeight + 'px';
+            }}
+            onKeyDown={async e => {
+              if (e.key === 'Enter' && !e.shiftKey && currentPrompt.trim()) {
+                e.preventDefault();
+                // You can implement the call to promptBooster here if needed
+                handlePromptSubmit(currentPrompt.trim(), currentPrompt.trim());
+              }
+            }}
+            placeholder="描述您想要的設計優化..."
+            rows={1}
+            className="flex-1 resize-none overflow-hidden bg-purple-600 text-white placeholder-purple-200 focus:outline-none"
+            disabled={loading}
+          />
+          <button 
+            onClick={() => currentPrompt.trim() && handlePromptSubmit(currentPrompt.trim(), currentPrompt.trim())} 
+            disabled={loading || !currentPrompt.trim()} 
+            className="p-2 rounded-md bg-white hover:bg-gray-100 text-purple-600"
+          >
+            <PaperAirplaneIcon className="w-5 h-5" />
+          </button>
+        </div>
+        
+        {/* Upload Reference Image */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-bold mb-4 text-black">Upload Reference Image</h2>
+          <div className="flex flex-col items-center">
+            <input 
+              type="file" 
+              accept="image/*"
+              onChange={handleFileChange}
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
             />
+            <div className="mt-4 text-center">
+              <p className="text-gray-500 text-sm">No file chosen</p>
+            </div>
           </div>
         </div>
+        
+        {/* Trending design features section from second image */}
+        {selectedImageIndex >= 0 && (
+          <div className="bg-white p-6 rounded-lg shadow-md mt-8">
+            <h2 className="text-xl font-bold mb-4 text-black ">Trending design features to consider:</h2>
+            <p className="text-gray-700">
+              Here is a summary of the common design trends and features across the PC case images:
+              - Materials and Colors: - Black is the dominant exterior color - Metal (steel/aluminum) is the most common exterior material 
+              - Glass side panels are very common - Some cases have mesh panel accents
+              - Small number of cases use plastic - Shapes: - Rectangular cuboid is the most prevalent overall shape
+              - Angular and aggressive styling features are common - Front panel styling varies (flat, protruding, mesh)
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
