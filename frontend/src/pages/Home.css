@@ -1,131 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@400;700;900&family=Inter:wght@400;500;700&display=swap');
+
 .home-container {
   min-height: 100vh;
-  background: #000000;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+  background-color: #ffffff;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 2rem;
+  font-family: 'Inter', sans-serif;
 }
 
 .content-container {
-  border-radius: 8px;
-  padding: 2rem;
+  max-width: 1200px;
+  width: 100%;
+  text-align: center;
+}
+
+.tagline-container {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.logo {
+  width: 60px;
+  height: 60px;
+}
+
+.tagline-main {
+  font-family: 'Big Shoulders Display', sans-serif;
+  font-size: 5rem;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+}
+
+.tagline-black {
+  color: #000;
+}
+
+.tagline-purple {
+  color: #7047EB;
+}
+
+.tagline-subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.2rem;
+  color: #000;
+  margin-bottom: 3rem;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .product-card {
-  background-color: #3D4E81; /* ImageFX blue color */
-  border-radius: 8px;
-  padding: 2.5rem;
+  background-color: #7047EB;
+  border-radius: 16px;
+  padding: 2rem;
   color: white;
-  height: 350px; /* Fixed height to match the image */
+  height: 350px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* Left align content */
-  text-align: left;
+  align-items: center;
+  text-align: center;
   position: relative;
   overflow: hidden;
 }
 
-/* Add different colors for each card */
-.product-card:nth-child(1) {
-  background-color: #B59B35; /* Yellow for Whisk */
-}
-
-.product-card:nth-child(2) {
-  background-color: #3D5E81; /* Blue for VideoFX */
-}
-
-.product-card:nth-child(3) {
-  background-color: #5E64C4; /* Light blue for ImageFX */
-}
-
-.product-card:nth-child(4) {
-  background-color: #8E5986; /* Purple for MusicFX */
-}
-
 .product-title {
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-  text-align: left;
-  margin-top: auto;
+  font-family: 'Big Shoulders Display', sans-serif;
+  font-size: 3rem;
+  font-weight: 900;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
 }
 
 .product-description {
+  font-family: 'Inter', sans-serif;
   font-size: 1rem;
   margin-bottom: 2rem;
-  text-align: left;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
-.cm-header {
-  background-color: transparent;
-  border-bottom: none;
-  padding: 0.75rem 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.cm-logo {
-  height: 32px;
-}
-
-.cm-input-field {
-  background-color: #232329;
-  border: 1px solid #3a3a45;
-  border-radius: 4px;
-  color: white;
-}
-
-.cm-purple {
-  color: #9146FF;
-}
-
-.cm-purple-bg {
-  background-color: #9146FF;
-}
-
-.cm-card-dark {
-  background-color: #1e1e24;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.tagline-container {
-  text-align: left;
-  margin-bottom: 3rem;
-}
-
-.tagline-first {
-  font-size: 1.5rem;
-  color: #9a9a9a;
-  margin-bottom: 0.5rem;
-}
-
-.tagline-second {
-  font-size: 3rem;
-  color: white;
-  font-weight: normal;
-}
-
-.action-button {
-  background-color: #232329;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 50px;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  font-size: 1rem;
-  transition: background-color 0.3s;
-  margin-top: auto;
-  border: none;
-  cursor: pointer;
-  margin-bottom: 0.5rem;
-}
-
-.action-button:hover {
-  background-color: #333339;
+.product-image {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
 } 

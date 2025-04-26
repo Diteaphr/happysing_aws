@@ -13,7 +13,7 @@ import TimelinePage from './pages/TimelinePage';
 const App: React.FC = () => {
   return (
     <Router>
-      <div className="min-h-screen bg-[#121212]">
+      <div className="min-h-screen bg-white">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/case" element={<CasePage />} />

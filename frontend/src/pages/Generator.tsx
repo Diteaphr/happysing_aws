@@ -570,7 +570,7 @@ const Generator: React.FC = () => {
         <div className="flex items-center justify-between mb-6">
           <button 
             onClick={handleBackToPrompt}
-            className="flex items-center text-white hover:text-gray-200"
+            className="flex items-center text-black hover:text-gray-700"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
@@ -591,7 +591,7 @@ const Generator: React.FC = () => {
 
         <div className="product-card mb-6">
           <h2 className="text-xl font-bold mb-4 text-white">原始提示詞</h2>
-          <p className="text-gray-300 mb-6">{state.prompt}</p>
+          <p className="text-white mb-6">{state.prompt}</p>
           
           <h2 className="text-xl font-bold mb-4 text-white">AI 優化後的提示詞</h2>
           <p className="text-white">{refinedPrompt || '正在優化中...'}</p>
@@ -600,7 +600,7 @@ const Generator: React.FC = () => {
         {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
-            <p className="mt-4 text-gray-300">正在生成設計...</p>
+            <p className="mt-4 text-black">正在生成設計...</p>
           </div>
         ) : (
           <>
