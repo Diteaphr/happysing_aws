@@ -8,6 +8,7 @@ interface LocationState {
   boostedPrompt?: string;
   baseImage?: string | null;
   referenceImage?: string | null;
+  generatedImages: string[];  // <-- new
 }
 
 const CaseGeneratedPage: React.FC = () => {
@@ -18,13 +19,8 @@ const CaseGeneratedPage: React.FC = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   
   // 示例圖片 - 在實際應用中，這些可能來自 API 響應
-  const generatedImages = [
-    '/assets/design1.jpg',
-    '/assets/design1.jpg',
-    '/assets/design1.jpg',
-    '/assets/design1.jpg',
-    '/assets/design1.jpg'
-  ];
+  const generatedImages = state?.generatedImages || [];
+  console.log('[DEBUG] CaseGeneratedPage received images:', generatedImages);
   
   // 如果沒有有效的狀態，返回到主頁
   useEffect(() => {
