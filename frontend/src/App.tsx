@@ -1,21 +1,23 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Home from './pages/Home';
-import Generator from './pages/Generator';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ProductSelection from './pages/ProductSelection';
 import CasePage from './pages/CasePage';
 import CoolerPage from './pages/CoolerPage';
 import PsuPage from './pages/PsuPage';
 import FurniturePage from './pages/FurniturePage';
+import Generator from './pages/Generator';
 import MindmapPage from './pages/MindmapPage';
 import TimelinePage from './pages/TimelinePage';
+import CaseGeneratedPage from './pages/CaseGeneratedPage';
+import Navbar from './components/Navbar';
 
-const App: React.FC = () => {
+function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-white">
+      <div className="App">
+        <Navbar />
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<ProductSelection />} />
           <Route path="/case" element={<CasePage />} />
           <Route path="/cooler" element={<CoolerPage />} />
           <Route path="/psu" element={<PsuPage />} />
@@ -23,11 +25,11 @@ const App: React.FC = () => {
           <Route path="/generator" element={<Generator />} />
           <Route path="/mindmap" element={<MindmapPage />} />
           <Route path="/timeline" element={<TimelinePage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/case-generated" element={<CaseGeneratedPage />} />
         </Routes>
       </div>
     </Router>
   );
-};
+}
 
-export default App; 
+export default App;

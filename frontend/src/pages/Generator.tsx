@@ -592,8 +592,15 @@ const Generator: React.FC = () => {
 
   // 處理繼續按鈕點擊
   const handleContinue = () => {
-    alert('繼續處理設計...');
-    // 這裡可以加入繼續後的邏輯，比如導航到下一步或提交設計
+    navigate('/case-generated', { 
+      state: { 
+        productType: state.productType,
+        prompt: state.prompt,
+        boostedPrompt: refinedPrompt,
+        baseImage: baseImage,
+        referenceImage: referenceImage
+      } 
+    });
   };
 
   // 在 AI 優化後提示詞部分之後添加手動重新優化的功能
@@ -616,28 +623,6 @@ const Generator: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="flex items-center justify-between p-4 border-b">
-        <button 
-          onClick={handleBackToPrompt}
-          className="flex items-center text-black hover:text-gray-700"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-          </svg>
-          返回提示詞編輯
-        </button>
-        
-        {showMindmapButton && (
-          <button
-            onClick={handleViewMindmap}
-            className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-          >
-            <LightBulbIcon className="w-5 h-5 mr-2" />
-            查看心智圖
-          </button>
-        )}
-      </div>
-
       <div className="flex flex-grow">
         {/* 左側部分 - 提示詞 */}
         <div className="w-1/2 bg-purple-600 p-8 overflow-y-auto">
@@ -668,6 +653,16 @@ const Generator: React.FC = () => {
               className="bg-white hover:bg-gray-100 text-purple-700 font-bold py-2 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "優化中..." : "重新優化提示詞"}
+            </button>
+          </div>
+
+          {/* 添加返回按鈕替代導航欄 */}
+          <div className="mt-8 text-center">
+            <button 
+              onClick={handleBackToPrompt}
+              className="bg-white hover:bg-gray-100 text-purple-700 font-bold py-2 px-6 rounded-lg transition-colors"
+            >
+              返回提示詞編輯
             </button>
           </div>
         </div>
