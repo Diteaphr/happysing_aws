@@ -5,6 +5,8 @@ import ChatInput from '../components/ChatInput';
 import { LightBulbIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { addNodeToMindmap } from './MindmapPage';
 import { Timeline } from '../components/Timeline';
+import { PaperAirplaneIcon } from '@heroicons/react/24/solid';
+
 
 const CoolerPage: React.FC = () => {
   const navigate = useNavigate();
@@ -225,16 +227,42 @@ const CoolerPage: React.FC = () => {
           </button>
         </div>
         
-        {/* New Chat Input */}
-        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-          <h2 className="text-lg font-extrabold mb-3 text-black font-inter">New chat in this project</h2>
-          <ChatInput 
-            onSubmit={handlePromptSubmit} 
-            placeholder="描述您理想中的散熱器設計..." 
-            loading={loading}
-            onTextChange={setCurrentPrompt}
-          />
-        </div>
+{/* New ChatGPT-style Input */}
+<div className="bg-gray-800 rounded-xl p-4 mb-6 flex items-end space-x-2">
+  <textarea
+    value={currentPrompt}
+    onChange={e => {
+      setCurrentPrompt(e.target.value);
+      // auto-resize
+      e.target.style.height = 'auto';
+      e.target.style.height = e.target.scrollHeight + 'px';
+    }}
+    onKeyDown={e => {
+      if (e.key === 'Enter' && !e.shiftKey && currentPrompt.trim()) {
+        e.preventDefault();
+        handlePromptSubmit(currentPrompt.trim());
+      }
+    }}
+    placeholder="描述您理想中的散熱器設計..."
+    rows={1}
+    className="
+      flex-1 resize-none overflow-hidden bg-transparent text-white
+      placeholder-gray-400 focus:outline-none
+    "
+    disabled={loading}
+  />
+
+  <button
+    onClick={() => currentPrompt.trim() && handlePromptSubmit(currentPrompt.trim())}
+    disabled={loading || !currentPrompt.trim()}
+    className={`
+      p-2 rounded-md transition 
+      ${currentPrompt.trim() ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-700 cursor-not-allowed'}
+    `}
+  >
+    <PaperAirplaneIcon className="w-5 h-5 text-white rotate-90" />
+  </button>
+</div>
         
         {/* Upload Image Sections */}
         <div className="grid grid-cols-2 gap-4 mb-8">
