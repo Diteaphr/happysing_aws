@@ -716,9 +716,15 @@ const Generator: React.FC = () => {
                 <p className="text-white">正在優化中...</p>
               </div>
             ) : (
-              <p className="text-white p-4 bg-purple-700 bg-opacity-50 rounded-lg">{refinedPrompt}</p>
+              <textarea
+                value={refinedPrompt}
+                onChange={(e) => setRefinedPrompt(e.target.value)}
+                className="w-full p-4 bg-purple-700 bg-opacity-50 rounded-lg text-white"
+                rows={8}
+              />
             )}
           </div>
+
           
           {/* 手動重新優化提示詞按鈕 */}
           <div className="text-center">
