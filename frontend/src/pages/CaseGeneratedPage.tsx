@@ -64,6 +64,25 @@ const CaseGeneratedPage: React.FC = () => {
   // 示例圖片 - 在實際應用中，這些可能來自 API 響應
   const generatedImages = state?.generatedImages || [];
   console.log('[DEBUG] CaseGeneratedPage received images:', generatedImages);
+  // helper functions
+  async function saveFavoriteImage(url: string, description: string) {
+    const res = await fetch('http://localhost:5000/api/save_favorite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_url: url, description })
+    });
+    if (!res.ok) throw new Error('Failed to save');
+  }
+
+  async function deleteFavoriteImage(url: string) {
+    const res = await fetch('http://localhost:5000/api/delete_favorite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_url: url })
+    });
+    if (!res.ok) throw new Error('Failed to delete');
+  }
+
   
   // 如果沒有有效的狀態，返回到主頁
   useEffect(() => {
@@ -85,18 +104,19 @@ const CaseGeneratedPage: React.FC = () => {
     setSelectedImageIndex(index === selectedImageIndex ? -1 : index);
   };
 
-  const handleHeartClick = (index: number) => {
-    // Add to favorites
+  const handleHeartClick = async (index: number) => {
+    const imageUrl = generatedImages[index];
+    const description = `new_img_${index + 1}`;
+  
     if (!favorites.includes(index)) {
       setFavorites([...favorites, index]);
-      setShowFavoriteMessage(index);
-      setTimeout(() => {
-        setShowFavoriteMessage(null);
-      }, 2000);
+      await saveFavoriteImage(imageUrl, description);
     } else {
       setFavorites(favorites.filter(i => i !== index));
+      await deleteFavoriteImage(imageUrl);
     }
   };
+  
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null;
