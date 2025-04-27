@@ -133,6 +133,9 @@ const Generator: React.FC = () => {
 
   // 獲取用戶上傳的圖片
   const baseImage = state?.baseImage || null;
+  const selectedBaseImageUrl = localStorage.getItem('selectedBaseImageUrl') || null;
+  const baseImageUrl = state?.baseImage || selectedBaseImageUrl;
+
   const referenceImage = state?.referenceImage || null;
 
   // Mock images for demonstration
@@ -647,7 +650,7 @@ const Generator: React.FC = () => {
         refinedPrompt,             // ✍️ boosted prompt
         'test-user',                // 👤 userId
         1,                          // 🔢 generation round
-        baseImage || null           // 🖼️ selected base image URL
+        baseImageUrl || null           // 🖼️ selected base image URL
       );
   
       navigate('/case-generated', { 
@@ -655,7 +658,7 @@ const Generator: React.FC = () => {
           productType: state.productType,
           prompt: state.prompt,
           boostedPrompt: refinedPrompt,
-          baseImage: baseImage,     // <--- keep passing it
+          baseImage: baseImageUrl,     // <--- keep passing it
           referenceImage: referenceImage,
           generatedImages: generatedImages
         } 
