@@ -28,7 +28,7 @@ const Home: React.FC = () => {
     <div className="home-container">
       <div className="content-container">
         <div className="logo-container">
-          <img src="/assets/logo.svg" alt="Logo" className="logo" />
+          <img src="/assets/Coolerd.svg" alt="Logo" className="logo" />
         </div>
         
         <div className="tagline-container">
