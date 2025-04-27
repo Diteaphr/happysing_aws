@@ -15,6 +15,37 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
+async function uploadImageToS3(file: File, userId: string = "default-user"): Promise<string> {
+  const timestamp = Date.now();
+  const filename = file.name;
+  
+  const uploadPath = `uploads/${userId}/${timestamp}_${filename}`;
+  const uploadUrl = `https://coolermaster-ai-generated.s3.amazonaws.com/${uploadPath}`;
+
+  try {
+    const uploadResponse = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': file.type || 'image/png'
+      },
+      body: file
+    });
+
+    // 👉 Just warn if not ok, but don't treat as hard fail
+    if (!uploadResponse.ok && uploadResponse.status !== 200 && uploadResponse.status !== 204) {
+      console.warn('[⚠️ Upload status not perfect, but assuming success]', uploadResponse.status);
+    }
+
+    console.log('[✅ Uploaded Successfully] to', uploadUrl);
+
+    return uploadUrl;
+  } catch (error) {
+    console.error('[❌ Upload Failed]:', error);
+    throw new Error('Upload to S3 failed');
+  }
+}
+
+
 const CasePage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -155,12 +186,30 @@ const CasePage: React.FC = () => {
     }
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, type: 'base' | 'reference') => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>, type: 'base' | 'reference') => {
     const file = event.target.files?.[0] || null;
+    if (!file) return;
+  
     if (type === 'reference') {
       setReferenceImage(file);
+    } else if (type === 'base') {
+      try {
+        const uploadedUrl = await uploadImageToS3(file);
+        localStorage.setItem('selectedBaseImageUrl', uploadedUrl);
+  
+        // 👉 fetch uploaded file and update baseImage
+        const uploadedBlob = await fetch(uploadedUrl).then(res => res.blob());
+        const uploadedFile = new File([uploadedBlob], file.name, { type: file.type });
+        setBaseImage(uploadedFile);
+  
+        console.log('[✅ Base image updated after upload]');
+      } catch (error) {
+        console.error('Failed to upload base image:', error);
+        alert('上傳失敗，請稍後再試');
+      }
     }
-  };
+  };  
+  
 
   const handleTryLuck = () => {
     const luckyPrompts = [
@@ -231,42 +280,61 @@ const CasePage: React.FC = () => {
           <div className="bg-white rounded-lg shadow-md p-4">
             <h3 className="text-md font-extrabold mb-3 text-black font-inter">選擇 Base Image</h3>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={openImageSelector}
-                disabled={loadingImages}
-                className="file:mr-4 file:py-2 file:px-4
-                          file:rounded-full file:border-0
-                          file:bg-purple-50 file:text-purple-700
-                          hover:file:bg-purple-100 text-sm py-2 px-4 rounded-full bg-purple-100 text-purple-700 hover:bg-purple-200
-                          disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loadingImages ? '載入中...' : '從資料庫載入圖片'}
-              </button>
-              <div className="flex flex-col items-center gap-2">
-              {baseImage ? (
-                <span className="text-sm text-gray-500">{baseImage.name}</span>
-              ) : (
-                (() => {
-                  const selectedImageUrl = localStorage.getItem('selectedBaseImageUrl');
-                  if (selectedImageUrl) {
-                    return (
-                      <img 
-                        src={selectedImageUrl} 
-                        alt="選擇的 Base Image" 
-                        className="w-32 h-32 object-contain rounded-lg"
-                      />
-                    );
-                  } else {
-                    return (
-                      <span className="text-sm text-gray-500">未選擇任何圖片</span>
-                    );
-                  }
-                })()
-              )}
-            </div>
+            <div className="flex flex-col gap-4 items-center relative">
+
+              {/* Upload file + Choose dataset buttons on same row */}
+              <div className="w-full flex justify-between items-center">
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={e => handleFileChange(e, 'base')}
+                  className="block text-sm text-gray-500
+                            file:mr-4 file:py-2 file:px-4 
+                            file:rounded-full file:border-0 
+                            file:bg-purple-50 file:text-purple-700 
+                            hover:file:bg-purple-100"
+                />
+
+                <button
+                  onClick={openImageSelector}
+                  disabled={loadingImages}
+                  className="text-xs py-2 px-4 rounded-full bg-purple-100 text-purple-700 hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loadingImages ? '載入中...' : '從資料庫載入圖片'}
+                </button>
+              </div>
+
+              {/* Image Preview below */}
+              <div className="flex flex-col items-center mt-4">
+  {baseImage ? (
+    <img 
+      src={URL.createObjectURL(baseImage)} 
+      alt="選擇的 Base Image" 
+      className="w-32 h-32 object-contain rounded-lg"
+    />
+  ) : (
+    (() => {
+      const selectedImageUrl = localStorage.getItem('selectedBaseImageUrl');
+      if (selectedImageUrl) {
+        return (
+          <img 
+            src={selectedImageUrl} 
+            alt="選擇的 Base Image" 
+            className="w-32 h-32 object-contain rounded-lg"
+          />
+        );
+      } else {
+        return (
+          <span className="text-sm text-gray-500">未選擇任何圖片</span>
+        );
+      }
+    })()
+  )}
+</div>
+
 
             </div>
+
 
             {imageError && (
               <div className="mt-2 text-red-500 text-sm">{imageError}</div>
