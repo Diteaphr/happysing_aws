@@ -10,13 +10,13 @@ const Home: React.FC = () => {
       id: 'case', 
       name: 'PC CASES', 
       description: 'Innovation? Case solved.', 
-      image: '/assets/pc-case.svg'
+      image: '/happysing_aws/assets/pc-case.svg'
     },
     { 
       id: 'cooler', 
       name: 'COOLING', 
       description: 'Cool design with Cooling', 
-      image: '/assets/cooler.svg'
+      image: '/happysing_aws/assets/cooler.svg'
     }
   ];
 
@@ -28,7 +28,7 @@ const Home: React.FC = () => {
     <div className="home-container">
       <div className="content-container">
         <div className="logo-container">
-          <img src="/assets/Coolerd.svg" alt="Logo" className="logo" />
+          <img src="/happysing_aws/assets/Coolerd.svg" alt="Logo" className="logo" />
         </div>
         
         <div className="tagline-container">
@@ -61,4 +61,4 @@ const Home: React.FC = () => {
   );
 };
 
-export default Home; 
+export default Home;
