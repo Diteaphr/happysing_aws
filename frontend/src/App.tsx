@@ -1,5 +1,7 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+// 或者如果您想繼續使用 BrowserRouter，請使用：
+// import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ProductSelection from './pages/ProductSelection';
 import CasePage from './pages/CasePage';
 import CoolerPage from './pages/CoolerPage';
