@@ -14,11 +14,14 @@ interface LocationState {
 
 async function callPromptBooster(promptText: string): Promise<string> {
   try {
+    const instruction = "\n\n(Please refine the prompt based only on the above description. Do not include trend analysis.)";
+    const modifiedPromptText = promptText + instruction;
+
     const response = await fetch('https://409etc6v1f.execute-api.us-west-2.amazonaws.com/promptbooster', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        user_prompt: promptText,
+        user_prompt: modifiedPromptText,
         inspiration_image_ids: [],
         use_trends: false
       })

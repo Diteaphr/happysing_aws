@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './Home.css'; // Import gradient styles
 import { LightBulbIcon } from '@heroicons/react/24/outline';
+// Import the addNodeToMindmap function
+import { addNodeToMindmap } from './MindmapPage';
 
 // 定义选择工具类型
 enum SelectionTool {
@@ -133,6 +135,9 @@ const Generator: React.FC = () => {
 
   // 獲取用戶上傳的圖片
   const baseImage = state?.baseImage || null;
+  const selectedBaseImageUrl = localStorage.getItem('selectedBaseImageUrl') || null;
+  const baseImageUrl = state?.baseImage || selectedBaseImageUrl;
+
   const referenceImage = state?.referenceImage || null;
 
   // Mock images for demonstration
@@ -643,11 +648,14 @@ const Generator: React.FC = () => {
     setIsGenerating(true);  // 🌀 Start showing loading spinner
   
     try {
+      // Add the refined prompt to the mindmap
+      addNodeToMindmap(refinedPrompt);
+      
       const generatedImages = await callImageGenerator(
         refinedPrompt,             // ✍️ boosted prompt
         'test-user',                // 👤 userId
         1,                          // 🔢 generation round
-        baseImage || null           // 🖼️ selected base image URL
+        baseImageUrl || null           // 🖼️ selected base image URL
       );
   
       navigate('/case-generated', { 
@@ -655,7 +663,7 @@ const Generator: React.FC = () => {
           productType: state.productType,
           prompt: state.prompt,
           boostedPrompt: refinedPrompt,
-          baseImage: baseImage,     // <--- keep passing it
+          baseImage: baseImageUrl,     // <--- keep passing it
           referenceImage: referenceImage,
           generatedImages: generatedImages
         } 
@@ -727,10 +735,20 @@ const Generator: React.FC = () => {
           <div className="mt-8 text-center">
             <button 
               onClick={handleBackToPrompt}
-              className="bg-white hover:bg-gray-100 text-purple-700 font-bold py-2 px-6 rounded-lg transition-colors"
+              className="bg-white hover:bg-gray-100 text-purple-700 font-bold py-2 px-6 rounded-lg transition-colors mr-4"
             >
               返回提示詞編輯
             </button>
+            
+            {/* 添加查看心智圖按鈕 */}
+            {showMindmapButton && (
+              <button 
+                onClick={handleViewMindmap}
+                className="bg-white hover:bg-gray-100 text-purple-700 font-bold py-2 px-6 rounded-lg transition-colors ml-4"
+              >
+                查看心智圖
+              </button>
+            )}
           </div>
         </div>
         
@@ -797,7 +815,6 @@ const Generator: React.FC = () => {
               >
                 {isGenerating ? '生成中...' : '繼續'}  {/* 🌀 Change button text */}
               </button>
-
           </div>
         </div>
       </div>
